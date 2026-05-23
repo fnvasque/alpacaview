@@ -1,0 +1,55 @@
+name: Forward Testing
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+      FORWARD_TESTING_ENABLED: ${{ secrets.FORWARD_TESTING_ENABLED }}
+      FORWARD_TESTING_BACKEND_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Start FastAPI backend
+        run: |
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          UVICORN_PID=$!
+          READY=false
+          for i in $(seq 1 30); do
+            sleep 1
+            if ! kill -0 $UVICORN_PID 2>/dev/null; then
+              echo "ERROR: FastAPI process exited unexpectedly"
+              exit 1
+            fi
+            if curl -sf http://127.0.0.1:8000/docs > /dev/null 2>&1; then
+              echo "FastAPI ready after ${i}s"
+              READY=true
+              break
+            fi
+            echo "Waiting for FastAPI... ($i/30)"
+          done
+          if [ "$READY" != "true" ]; then
+            echo "ERROR: FastAPI did not start within 30 seconds"
+            exit 1
+          fi
+      - name: Run forward testing
+        run: |
+          python -m src.forward_testing.cli \
+            --once \
+            --tickers SPY,QQQ,AAPL,MSFT,NVDA \
+            --timeframe 15m \
+            --period 5d \
+            --send \
+            --market-hours-only

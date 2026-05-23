@@ -1,0 +1,30 @@
+name: Health Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check DB connectivity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python -c "
+          import os, sys
+          from sqlalchemy import create_engine, text
+          db_url = os.environ.get('DATABASE_URL', 'sqlite:///./alpacaview.db')
+          engine = create_engine(db_url)
+          with engine.connect() as conn:
+              conn.execute(text('SELECT 1'))
+          print('DB connection OK')
+          "

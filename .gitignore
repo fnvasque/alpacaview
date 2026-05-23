@@ -1,0 +1,27 @@
+# Secrets and environment
+.env
+
+# Local database
+*.db
+alpacaview.db
+
+# Virtual environment
+.venv/
+venv/
+
+# Runtime logs
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
