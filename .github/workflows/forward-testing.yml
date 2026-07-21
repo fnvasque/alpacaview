@@ -1,11 +1,6 @@
 name: Forward Testing
 
 on:
-  schedule:
-    - cron: '52 9 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '7,22,37,52 10-15 * * 1-5'
-      timezone: "America/New_York"
   workflow_dispatch:
 
 jobs:
