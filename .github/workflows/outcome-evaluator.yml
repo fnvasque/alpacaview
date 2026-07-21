@@ -1,13 +1,6 @@
 name: Outcome Evaluator
 
 on:
-  schedule:
-    - cron: '57 9 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '12,27,42,57 10-15 * * 1-5'
-      timezone: "America/New_York"
-    - cron: '12 16 * * 1-5'
-      timezone: "America/New_York"
   workflow_dispatch:
 
 jobs:
